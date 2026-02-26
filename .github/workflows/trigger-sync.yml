@@ -1,0 +1,27 @@
+name: Trigger Skills Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'skills/**' 
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate cross-repo App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.SYNC_APP_ID }}
+          private-key: ${{ secrets.SYNC_APP_PRIVATE_KEY }}
+          owner: ssbushi # The org of the target repo
+
+      - name: Send Webhook (Dispatch) to Repo A
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          repository: ssbushi/testRepoA
+          event-type: sync_skills
